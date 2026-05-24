@@ -1,8 +1,26 @@
 import { AdminPage } from "@/components/admin/admin-page";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { getAdminFeedback } from "@/lib/admin-repository";
 import { feedback } from "@/lib/dashboard-data";
+import { hasSupabaseAdminEnv } from "@/lib/env";
 
-export default function FeedbackPage() {
+export const dynamic = "force-dynamic";
+
+async function getFeedback() {
+  if (!hasSupabaseAdminEnv()) {
+    return feedback;
+  }
+
+  try {
+    return await getAdminFeedback();
+  } catch {
+    return feedback;
+  }
+}
+
+export default async function FeedbackPage() {
+  const items = await getFeedback();
+
   return (
     <AdminPage
       active="Feedback"
@@ -20,16 +38,25 @@ export default function FeedbackPage() {
             <a href="#">Filter open</a>
           </div>
           <div className="list">
-            {feedback.map((item) => (
-              <div className="feedback-item" key={item.title}>
+            {items.length === 0 ? (
+              <div className="feedback-item">
                 <div className="feedback-head">
-                  <strong>{item.title}</strong>
-                  <StatusBadge>{item.status}</StatusBadge>
+                  <strong>Belum ada feedback.</strong>
                 </div>
-                <p>{item.message}</p>
-                <span>{item.user}</span>
+                <p>Feedback akan muncul setelah user mengirim masukan dari aplikasi mobile.</p>
               </div>
-            ))}
+            ) : (
+              items.map((item) => (
+                <div className="feedback-item" key={item.title}>
+                  <div className="feedback-head">
+                    <strong>{item.title}</strong>
+                    <StatusBadge>{item.status}</StatusBadge>
+                  </div>
+                  <p>{item.message}</p>
+                  <span>{item.user}</span>
+                </div>
+              ))
+            )}
           </div>
         </article>
 

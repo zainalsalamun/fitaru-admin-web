@@ -1,10 +1,28 @@
-import { apiSuccess } from "@/lib/api/response";
+import { apiError, apiSuccess } from "@/lib/api/response";
+import { getAdminFeedback } from "@/lib/admin-repository";
 import { hasSupabaseAdminEnv } from "@/lib/env";
 import { feedback } from "@/lib/dashboard-data";
 
-export function GET() {
-  return apiSuccess({
-    items: feedback,
-    source: hasSupabaseAdminEnv() ? "supabase" : "mock",
-  });
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  if (!hasSupabaseAdminEnv()) {
+    return apiSuccess({
+      items: feedback,
+      source: "mock",
+    });
+  }
+
+  try {
+    return apiSuccess({
+      items: await getAdminFeedback(),
+      source: "supabase",
+    });
+  } catch (error) {
+    return apiError({
+      code: "ADMIN_FEEDBACK_QUERY_FAILED",
+      details: error,
+      message: "Failed to load admin feedback.",
+    });
+  }
 }

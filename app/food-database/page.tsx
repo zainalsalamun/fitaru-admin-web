@@ -1,8 +1,26 @@
 import { AdminPage } from "@/components/admin/admin-page";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { getAdminFoodItems } from "@/lib/admin-repository";
 import { foodItems } from "@/lib/cms-data";
+import { hasSupabaseAdminEnv } from "@/lib/env";
 
-export default function FoodDatabasePage() {
+export const dynamic = "force-dynamic";
+
+async function getFoodItems() {
+  if (!hasSupabaseAdminEnv()) {
+    return foodItems;
+  }
+
+  try {
+    return await getAdminFoodItems();
+  } catch {
+    return foodItems;
+  }
+}
+
+export default async function FoodDatabasePage() {
+  const items = await getFoodItems();
+
   return (
     <AdminPage
       active="Food Database"
@@ -31,17 +49,25 @@ export default function FoodDatabasePage() {
               </tr>
             </thead>
             <tbody>
-              {foodItems.map((food) => (
-                <tr key={food.name}>
-                  <td>{food.name}</td>
-                  <td className="muted">{food.category}</td>
-                  <td className="muted">{food.portion}</td>
-                  <td className="muted">{food.calories}</td>
-                  <td>
-                    <StatusBadge>{food.status}</StatusBadge>
+              {items.length === 0 ? (
+                <tr>
+                  <td className="muted" colSpan={5}>
+                    Belum ada data makanan.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                items.map((food) => (
+                  <tr key={food.name}>
+                    <td>{food.name}</td>
+                    <td className="muted">{food.category}</td>
+                    <td className="muted">{food.portion}</td>
+                    <td className="muted">{food.calories}</td>
+                    <td>
+                      <StatusBadge>{food.status}</StatusBadge>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

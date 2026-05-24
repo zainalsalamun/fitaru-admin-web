@@ -3,6 +3,7 @@ import { AdminPage } from "@/components/admin/admin-page";
 import { StatCard } from "@/components/admin/stat-card";
 import { UserGrowthChart } from "@/components/admin/user-growth-chart";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { getAdminOverview } from "@/lib/admin-repository";
 import {
   articles,
   feedback,
@@ -10,8 +11,67 @@ import {
   stats,
   topFoods,
 } from "@/lib/dashboard-data";
+import { hasSupabaseAdminEnv } from "@/lib/env";
 
-export default function AdminOverviewPage() {
+export const dynamic = "force-dynamic";
+
+async function getOverviewData() {
+  if (!hasSupabaseAdminEnv()) {
+    return {
+      articles,
+      feedback,
+      stats,
+      topFoods,
+    };
+  }
+
+  try {
+    const overview = await getAdminOverview();
+
+    return {
+      articles: overview.articles,
+      feedback: overview.recentFeedback,
+      stats: [
+        {
+          icon: "◎",
+          label: "Total User",
+          note: "Dari Supabase",
+          value: overview.stats.totalUsers,
+        },
+        {
+          icon: "◷",
+          label: "Active Today",
+          note: "Status active",
+          value: overview.stats.activeUsersToday,
+        },
+        {
+          icon: "◍",
+          label: "Meal Logs",
+          note: "hari ini",
+          value: overview.stats.mealLogsToday,
+        },
+        {
+          icon: "☰",
+          label: "Feedback Baru",
+          note: "Status open",
+          value: overview.stats.feedbackNew,
+        },
+      ],
+      topFoods: overview.topFoods,
+    };
+  } catch {
+    return {
+      articles,
+      feedback,
+      stats,
+      topFoods,
+    };
+  }
+}
+
+export default async function AdminOverviewPage() {
+  const overview = await getOverviewData();
+
   return (
     <AdminPage
       active="Overview"
@@ -20,7 +80,7 @@ export default function AdminOverviewPage() {
       title="Overview Dashboard"
     >
       <section className="stats-grid" aria-label="Key metrics">
-          {stats.map((stat) => (
+          {overview.stats.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}
       </section>
@@ -66,17 +126,25 @@ export default function AdminOverviewPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {articles.map((article) => (
-                      <tr key={article.title}>
-                        <td>{article.title}</td>
-                        <td className="muted">{article.category}</td>
-                        <td>
-                          <StatusBadge>{article.status}</StatusBadge>
+                    {overview.articles.length === 0 ? (
+                      <tr>
+                        <td className="muted" colSpan={5}>
+                          Belum ada artikel.
                         </td>
-                        <td className="muted">{article.author}</td>
-                        <td className="muted">{article.updated}</td>
                       </tr>
-                    ))}
+                    ) : (
+                      overview.articles.map((article) => (
+                        <tr key={article.title}>
+                          <td>{article.title}</td>
+                          <td className="muted">{article.category}</td>
+                          <td>
+                            <StatusBadge>{article.status}</StatusBadge>
+                          </td>
+                          <td className="muted">{article.author}</td>
+                          <td className="muted">{article.updated}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -109,15 +177,24 @@ export default function AdminOverviewPage() {
                 </div>
               </div>
               <div className="list">
-                {topFoods.map((food) => (
-                  <div className="list-item" key={food.name}>
+                {overview.topFoods.length === 0 ? (
+                  <div className="list-item">
                     <div>
-                      <strong>{food.name}</strong>
-                      <span>{food.meta}</span>
+                      <strong>Belum ada makanan.</strong>
+                      <span>Data akan muncul dari database referensi.</span>
                     </div>
-                    <StatusBadge>{food.logs}</StatusBadge>
                   </div>
-                ))}
+                ) : (
+                  overview.topFoods.map((food) => (
+                    <div className="list-item" key={food.name}>
+                      <div>
+                        <strong>{food.name}</strong>
+                        <span>{food.meta}</span>
+                      </div>
+                      <StatusBadge>{food.logs}</StatusBadge>
+                    </div>
+                  ))
+                )}
               </div>
             </article>
 
@@ -140,16 +217,25 @@ export default function AdminOverviewPage() {
                 <a href="#">Kelola</a>
               </div>
               <div className="list">
-                {feedback.map((item) => (
-                  <div className="feedback-item" key={item.title}>
+                {overview.feedback.length === 0 ? (
+                  <div className="feedback-item">
                     <div className="feedback-head">
-                      <strong>{item.title}</strong>
-                      <StatusBadge>{item.status}</StatusBadge>
+                      <strong>Belum ada feedback.</strong>
                     </div>
-                    <p>{item.message}</p>
-                    <span>{item.user}</span>
+                    <p>Feedback terbaru akan muncul di sini.</p>
                   </div>
-                ))}
+                ) : (
+                  overview.feedback.map((item) => (
+                    <div className="feedback-item" key={item.title}>
+                      <div className="feedback-head">
+                        <strong>{item.title}</strong>
+                        <StatusBadge>{item.status}</StatusBadge>
+                      </div>
+                      <p>{item.message}</p>
+                      <span>{item.user}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </article>
           </aside>

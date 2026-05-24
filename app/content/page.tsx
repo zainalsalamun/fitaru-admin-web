@@ -1,8 +1,26 @@
 import { AdminPage } from "@/components/admin/admin-page";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { getAdminArticles } from "@/lib/admin-repository";
 import { articles } from "@/lib/dashboard-data";
+import { hasSupabaseAdminEnv } from "@/lib/env";
 
-export default function ContentPage() {
+export const dynamic = "force-dynamic";
+
+async function getArticles() {
+  if (!hasSupabaseAdminEnv()) {
+    return articles;
+  }
+
+  try {
+    return await getAdminArticles();
+  } catch {
+    return articles;
+  }
+}
+
+export default async function ContentPage() {
+  const articleItems = await getArticles();
+
   return (
     <AdminPage
       active="Content"
@@ -39,17 +57,25 @@ export default function ContentPage() {
                 </tr>
               </thead>
               <tbody>
-                {articles.map((article) => (
-                  <tr key={article.title}>
-                    <td>{article.title}</td>
-                    <td className="muted">{article.category}</td>
-                    <td>
-                      <StatusBadge>{article.status}</StatusBadge>
+                {articleItems.length === 0 ? (
+                  <tr>
+                    <td className="muted" colSpan={5}>
+                      Belum ada artikel.
                     </td>
-                    <td className="muted">{article.author}</td>
-                    <td className="muted">{article.updated}</td>
                   </tr>
-                ))}
+                ) : (
+                  articleItems.map((article) => (
+                    <tr key={article.title}>
+                      <td>{article.title}</td>
+                      <td className="muted">{article.category}</td>
+                      <td>
+                        <StatusBadge>{article.status}</StatusBadge>
+                      </td>
+                      <td className="muted">{article.author}</td>
+                      <td className="muted">{article.updated}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

@@ -1,8 +1,26 @@
 import { AdminPage } from "@/components/admin/admin-page";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { getAdminUsers } from "@/lib/admin-repository";
 import { users } from "@/lib/cms-data";
+import { hasSupabaseAdminEnv } from "@/lib/env";
 
-export default function UsersPage() {
+export const dynamic = "force-dynamic";
+
+async function getUsers() {
+  if (!hasSupabaseAdminEnv()) {
+    return users;
+  }
+
+  try {
+    return await getAdminUsers();
+  } catch {
+    return users;
+  }
+}
+
+export default async function UsersPage() {
+  const items = await getUsers();
+
   return (
     <AdminPage
       active="Users"
@@ -31,17 +49,25 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
-                <tr key={user.contact}>
-                  <td>{user.name}</td>
-                  <td className="muted">{user.contact}</td>
-                  <td className="muted">{user.goal}</td>
-                  <td>
-                    <StatusBadge>{user.status}</StatusBadge>
+              {items.length === 0 ? (
+                <tr>
+                  <td className="muted" colSpan={5}>
+                    Belum ada user mobile.
                   </td>
-                  <td className="muted">{user.lastActive}</td>
                 </tr>
-              ))}
+              ) : (
+                items.map((user) => (
+                  <tr key={user.contact}>
+                    <td>{user.name}</td>
+                    <td className="muted">{user.contact}</td>
+                    <td className="muted">{user.goal}</td>
+                    <td>
+                      <StatusBadge>{user.status}</StatusBadge>
+                    </td>
+                    <td className="muted">{user.lastActive}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

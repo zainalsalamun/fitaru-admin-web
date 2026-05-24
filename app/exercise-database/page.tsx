@@ -1,8 +1,26 @@
 import { AdminPage } from "@/components/admin/admin-page";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { getAdminExerciseItems } from "@/lib/admin-repository";
 import { exerciseItems } from "@/lib/cms-data";
+import { hasSupabaseAdminEnv } from "@/lib/env";
 
-export default function ExerciseDatabasePage() {
+export const dynamic = "force-dynamic";
+
+async function getExerciseItems() {
+  if (!hasSupabaseAdminEnv()) {
+    return exerciseItems;
+  }
+
+  try {
+    return await getAdminExerciseItems();
+  } catch {
+    return exerciseItems;
+  }
+}
+
+export default async function ExerciseDatabasePage() {
+  const items = await getExerciseItems();
+
   return (
     <AdminPage
       active="Exercise Database"
@@ -32,18 +50,26 @@ export default function ExerciseDatabasePage() {
               </tr>
             </thead>
             <tbody>
-              {exerciseItems.map((exercise) => (
-                <tr key={exercise.name}>
-                  <td>{exercise.name}</td>
-                  <td className="muted">{exercise.category}</td>
-                  <td className="muted">{exercise.intensity}</td>
-                  <td className="muted">{exercise.duration}</td>
-                  <td className="muted">{exercise.calories}</td>
-                  <td>
-                    <StatusBadge>{exercise.status}</StatusBadge>
+              {items.length === 0 ? (
+                <tr>
+                  <td className="muted" colSpan={6}>
+                    Belum ada data olahraga.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                items.map((exercise) => (
+                  <tr key={exercise.name}>
+                    <td>{exercise.name}</td>
+                    <td className="muted">{exercise.category}</td>
+                    <td className="muted">{exercise.intensity}</td>
+                    <td className="muted">{exercise.duration}</td>
+                    <td className="muted">{exercise.calories}</td>
+                    <td>
+                      <StatusBadge>{exercise.status}</StatusBadge>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
