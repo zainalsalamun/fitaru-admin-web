@@ -301,7 +301,7 @@ export async function getAdminExerciseItems() {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("exercise_items")
-    .select("name, category, default_intensity, default_duration_minutes, calories_per_30_minutes, status")
+    .select("id, name, category, default_intensity, default_duration_minutes, calories_per_30_minutes, notes, status")
     .order("name", { ascending: true });
 
   if (error) {
@@ -313,12 +313,87 @@ export async function getAdminExerciseItems() {
       item.calories_per_30_minutes === null
         ? "-"
         : `${formatNumber(item.calories_per_30_minutes)} kkal`,
+    caloriesValue: item.calories_per_30_minutes,
     category: titleCase(item.category),
+    categoryValue: item.category,
     duration: `${formatNumber(item.default_duration_minutes)} menit`,
+    durationValue: item.default_duration_minutes,
+    id: item.id,
     intensity: titleCase(item.default_intensity),
+    intensityValue: item.default_intensity,
     name: item.name,
+    notes: item.notes ?? "",
     status: formatStatus(item.status),
+    statusValue: item.status,
   }));
+}
+
+export async function createAdminExerciseItem(input: {
+  caloriesPer30Minutes: number | null;
+  category: string;
+  defaultDurationMinutes: number;
+  defaultIntensity: string;
+  name: string;
+  notes: string | null;
+  status: string;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const createdBy = await getFirstAdminUserId();
+
+  const { error } = await supabase.from("exercise_items").insert({
+    calories_per_30_minutes: input.caloriesPer30Minutes,
+    category: input.category,
+    created_by: createdBy,
+    default_duration_minutes: input.defaultDurationMinutes,
+    default_intensity: input.defaultIntensity,
+    name: input.name,
+    notes: input.notes,
+    status: input.status,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateAdminExerciseItem(
+  id: string,
+  input: {
+    caloriesPer30Minutes: number | null;
+    category: string;
+    defaultDurationMinutes: number;
+    defaultIntensity: string;
+    name: string;
+    notes: string | null;
+    status: string;
+  },
+) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("exercise_items")
+    .update({
+      calories_per_30_minutes: input.caloriesPer30Minutes,
+      category: input.category,
+      default_duration_minutes: input.defaultDurationMinutes,
+      default_intensity: input.defaultIntensity,
+      name: input.name,
+      notes: input.notes,
+      status: input.status,
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function deleteAdminExerciseItem(id: string) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("exercise_items").delete().eq("id", id);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function getAdminFeedback() {
