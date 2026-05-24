@@ -1,0 +1,26 @@
+{
+  "name": "@fitaru/admin-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
+    "next": "16.2.6",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "20.12.12",
+    "@types/react": "18.3.2",
+    "@types/react-dom": "18.3.0",
+    "eslint": "10.4.0",
+    "eslint-config-next": "16.2.6",
+    "typescript": "5.4.5"
+  }
+}
