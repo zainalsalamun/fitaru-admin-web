@@ -450,11 +450,20 @@ textarea {
 }
 
 .form-actions,
+.form-row,
 .row-actions {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.form-row {
+  align-items: start;
+}
+
+.form-row label {
+  flex: 1 1 90px;
 }
 
 .form-actions .secondary-button {

@@ -3,6 +3,11 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { getAdminFoodItems } from "@/lib/admin-repository";
 import { foodItems } from "@/lib/cms-data";
 import { hasSupabaseAdminEnv } from "@/lib/env";
+import {
+  createFoodItemAction,
+  deleteFoodItemAction,
+  updateFoodItemAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -18,60 +23,200 @@ async function getFoodItems() {
   }
 }
 
-export default async function FoodDatabasePage() {
+type FoodItem = Awaited<ReturnType<typeof getFoodItems>>[number];
+type EditableFoodItem = FoodItem & {
+  caloriesValue: number | null;
+  carbsG: number | null;
+  categoryValue: string;
+  fatG: number | null;
+  id: string;
+  notes: string;
+  portionValue: string;
+  proteinG: number | null;
+  statusValue: string;
+};
+
+function isEditableFoodItem(item: FoodItem | undefined): item is EditableFoodItem {
+  return Boolean(item && "id" in item);
+}
+
+interface FoodDatabasePageProps {
+  searchParams?: Promise<{
+    edit?: string;
+  }>;
+}
+
+export default async function FoodDatabasePage({ searchParams }: FoodDatabasePageProps) {
+  const params = await searchParams;
   const items = await getFoodItems();
+  const candidateItem = params?.edit
+    ? items.find((item) => "id" in item && item.id === params.edit)
+    : undefined;
+  const editedItem = isEditableFoodItem(candidateItem) ? candidateItem : undefined;
+  const isEditing = Boolean(editedItem);
 
   return (
     <AdminPage
       active="Food Database"
-      action={<button className="primary-button">+ Tambah Makanan</button>}
+      action={<a className="primary-button" href="/food-database">+ Tambah Makanan</a>}
       description="Kelola referensi makanan lokal untuk pencatatan user."
       title="Food Database"
     >
-      <article className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Daftar Makanan</h2>
-            <p>Estimasi kalori tetap sederhana untuk MVP.</p>
+      <section className="content-grid">
+        <article className="panel">
+          <div className="panel-head">
+            <div>
+              <h2>Daftar Makanan</h2>
+              <p>Estimasi kalori tetap sederhana untuk MVP.</p>
+            </div>
+            <a href="#">Import CSV</a>
           </div>
-          <a href="#">Import CSV</a>
-        </div>
 
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Nama</th>
-                <th>Kategori</th>
-                <th>Porsi</th>
-                <th>Kalori</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.length === 0 ? (
+          <div className="table-scroll">
+            <table>
+              <thead>
                 <tr>
-                  <td className="muted" colSpan={5}>
-                    Belum ada data makanan.
-                  </td>
+                  <th>Nama</th>
+                  <th>Kategori</th>
+                  <th>Porsi</th>
+                  <th>Kalori</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
                 </tr>
-              ) : (
-                items.map((food) => (
-                  <tr key={food.name}>
-                    <td>{food.name}</td>
-                    <td className="muted">{food.category}</td>
-                    <td className="muted">{food.portion}</td>
-                    <td className="muted">{food.calories}</td>
-                    <td>
-                      <StatusBadge>{food.status}</StatusBadge>
+              </thead>
+              <tbody>
+                {items.length === 0 ? (
+                  <tr>
+                    <td className="muted" colSpan={6}>
+                      Belum ada data makanan.
                     </td>
                   </tr>
-                ))
+                ) : (
+                  items.map((food) => (
+                    <tr key={food.name}>
+                      <td>{food.name}</td>
+                      <td className="muted">{food.category}</td>
+                      <td className="muted">{food.portion}</td>
+                      <td className="muted">{food.calories}</td>
+                      <td>
+                        <StatusBadge>{food.status}</StatusBadge>
+                      </td>
+                      <td>
+                        {"id" in food ? (
+                          <div className="row-actions">
+                            <a className="text-action" href={`/food-database?edit=${food.id}`}>
+                              Edit
+                            </a>
+                            <form action={deleteFoodItemAction}>
+                              <input name="id" type="hidden" value={food.id} />
+                              <button className="danger-action" type="submit">
+                                Hapus
+                              </button>
+                            </form>
+                          </div>
+                        ) : (
+                          <span className="muted">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <aside className="panel form-panel">
+          <div className="panel-head">
+            <div>
+              <h2>{isEditing ? "Edit Makanan" : "Editor Makanan"}</h2>
+              <p>{isEditing ? "Update referensi makanan." : "Tambah makanan baru ke database."}</p>
+            </div>
+          </div>
+
+          <form action={isEditing ? updateFoodItemAction : createFoodItemAction} className="form-grid">
+            {editedItem && <input name="id" type="hidden" value={editedItem.id} />}
+            <label>
+              Nama
+              <input
+                defaultValue={editedItem?.name ?? ""}
+                name="name"
+                placeholder="Contoh: Nasi ayam"
+                required
+              />
+            </label>
+            <label>
+              Kategori
+              <select defaultValue={editedItem?.categoryValue ?? "homemade"} name="category" required>
+                <option value="homemade">Makanan rumahan</option>
+                <option value="outside_food">Makanan luar</option>
+                <option value="drink">Minuman</option>
+                <option value="fruit">Buah</option>
+                <option value="snack">Snack</option>
+                <option value="other">Lainnya</option>
+              </select>
+            </label>
+            <label>
+              Porsi Default
+              <select defaultValue={editedItem?.portionValue ?? "medium"} name="defaultPortion" required>
+                <option value="small">Kecil</option>
+                <option value="medium">Sedang</option>
+                <option value="large">Besar</option>
+              </select>
+            </label>
+            <label>
+              Status
+              <select defaultValue={editedItem?.statusValue ?? "active"} name="status" required>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </label>
+            <label>
+              Kalori per porsi
+              <input
+                defaultValue={editedItem?.caloriesValue ?? ""}
+                min="0"
+                name="caloriesPerPortion"
+                placeholder="520"
+                type="number"
+              />
+            </label>
+            <div className="form-row">
+              <label>
+                Protein
+                <input defaultValue={editedItem?.proteinG ?? ""} min="0" name="proteinG" step="0.1" type="number" />
+              </label>
+              <label>
+                Karbo
+                <input defaultValue={editedItem?.carbsG ?? ""} min="0" name="carbsG" step="0.1" type="number" />
+              </label>
+              <label>
+                Lemak
+                <input defaultValue={editedItem?.fatG ?? ""} min="0" name="fatG" step="0.1" type="number" />
+              </label>
+            </div>
+            <label>
+              Catatan
+              <textarea
+                defaultValue={editedItem?.notes ?? ""}
+                name="notes"
+                placeholder="Estimasi porsi rumahan..."
+                rows={4}
+              />
+            </label>
+            <div className="form-actions">
+              <button className="primary-button" type="submit">
+                {isEditing ? "Update Makanan" : "Simpan Makanan"}
+              </button>
+              {isEditing && (
+                <a className="secondary-button" href="/food-database">
+                  Batal
+                </a>
               )}
-            </tbody>
-          </table>
-        </div>
-      </article>
+            </div>
+          </form>
+        </aside>
+      </section>
     </AdminPage>
   );
 }

@@ -195,7 +195,7 @@ export async function getAdminFoodItems() {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("food_items")
-    .select("name, category, default_portion, calories_per_portion, status")
+    .select("id, name, category, default_portion, calories_per_portion, protein_g, carbs_g, fat_g, notes, status")
     .order("name", { ascending: true });
 
   if (error) {
@@ -206,10 +206,95 @@ export async function getAdminFoodItems() {
     calories:
       item.calories_per_portion === null ? "-" : `${formatNumber(item.calories_per_portion)} kkal`,
     category: titleCase(item.category),
+    categoryValue: item.category,
+    carbsG: item.carbs_g,
+    caloriesValue: item.calories_per_portion,
+    fatG: item.fat_g,
+    id: item.id,
     name: item.name,
+    notes: item.notes ?? "",
     portion: titleCase(item.default_portion),
+    portionValue: item.default_portion,
+    proteinG: item.protein_g,
     status: formatStatus(item.status),
+    statusValue: item.status,
   }));
+}
+
+export async function createAdminFoodItem(input: {
+  caloriesPerPortion: number | null;
+  carbsG: number | null;
+  category: string;
+  defaultPortion: string;
+  fatG: number | null;
+  name: string;
+  notes: string | null;
+  proteinG: number | null;
+  status: string;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const createdBy = await getFirstAdminUserId();
+
+  const { error } = await supabase.from("food_items").insert({
+    calories_per_portion: input.caloriesPerPortion,
+    carbs_g: input.carbsG,
+    category: input.category,
+    created_by: createdBy,
+    default_portion: input.defaultPortion,
+    fat_g: input.fatG,
+    name: input.name,
+    notes: input.notes,
+    protein_g: input.proteinG,
+    status: input.status,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateAdminFoodItem(
+  id: string,
+  input: {
+    caloriesPerPortion: number | null;
+    carbsG: number | null;
+    category: string;
+    defaultPortion: string;
+    fatG: number | null;
+    name: string;
+    notes: string | null;
+    proteinG: number | null;
+    status: string;
+  },
+) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("food_items")
+    .update({
+      calories_per_portion: input.caloriesPerPortion,
+      carbs_g: input.carbsG,
+      category: input.category,
+      default_portion: input.defaultPortion,
+      fat_g: input.fatG,
+      name: input.name,
+      notes: input.notes,
+      protein_g: input.proteinG,
+      status: input.status,
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function deleteAdminFoodItem(id: string) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("food_items").delete().eq("id", id);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function getAdminExerciseItems() {
