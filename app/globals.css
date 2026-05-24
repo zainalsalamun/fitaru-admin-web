@@ -502,6 +502,14 @@ textarea {
   border-color: var(--teal);
 }
 
+.form-grid button:disabled,
+.form-grid input:disabled,
+.form-grid select:disabled,
+.form-grid textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -641,6 +649,13 @@ td {
 
 .list-item,
 .feedback-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.feedback-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;

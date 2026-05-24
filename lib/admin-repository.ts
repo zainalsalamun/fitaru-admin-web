@@ -400,7 +400,7 @@ export async function getAdminFeedback() {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("feedback")
-    .select("subject, message, status, created_at, users(email, phone)")
+    .select("id, subject, message, status, admin_note, created_at, users(email, phone)")
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -409,11 +409,35 @@ export async function getAdminFeedback() {
   }
 
   return (data ?? []).map((item: any) => ({
+    adminNote: item.admin_note ?? "",
+    id: item.id,
     message: item.message,
     status: formatStatus(item.status),
+    statusValue: item.status,
     title: item.subject,
     user: `${item.users?.email ?? item.users?.phone ?? "User"} · ${formatDate(item.created_at)}`,
   }));
+}
+
+export async function updateAdminFeedback(
+  id: string,
+  input: {
+    adminNote: string | null;
+    status: string;
+  },
+) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("feedback")
+    .update({
+      admin_note: input.adminNote,
+      status: input.status,
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function getAdminUsers() {
