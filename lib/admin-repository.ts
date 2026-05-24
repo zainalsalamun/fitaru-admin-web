@@ -26,6 +26,14 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("id-ID").format(value);
 }
 
+export function createSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 async function getCount(table: string, filter?: (query: any) => any) {
   const supabase = createSupabaseAdminClient();
   let query = supabase.from(table).select("*", { count: "exact", head: true });
@@ -49,10 +57,14 @@ export async function getAdminArticles() {
     .from("articles")
     .select(
       `
+        id,
+        slug,
         title,
+        summary,
+        content,
         status,
         updated_at,
-        content_categories(name),
+        content_categories(id, name, slug),
         admin_users(name)
       `,
     )
@@ -65,10 +77,118 @@ export async function getAdminArticles() {
   return (data ?? []).map((article: any) => ({
     author: article.admin_users?.name ?? "-",
     category: article.content_categories?.name ?? "-",
+    categoryId: article.content_categories?.id ?? "",
+    categorySlug: article.content_categories?.slug ?? "",
+    content: article.content,
+    id: article.id,
+    slug: article.slug,
     status: formatStatus(article.status),
+    statusValue: article.status,
+    summary: article.summary,
     title: article.title,
     updated: formatDate(article.updated_at),
   }));
+}
+
+export async function getContentCategories() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("content_categories")
+    .select("id, name, slug")
+    .eq("status", "active")
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function getFirstAdminUserId() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("admin_users")
+    .select("id")
+    .eq("status", "active")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data?.id ?? null;
+}
+
+export async function createAdminArticle(input: {
+  categoryId: string;
+  content: string;
+  status: string;
+  summary: string;
+  title: string;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const authorId = await getFirstAdminUserId();
+  const status = input.status || "draft";
+  const publishedAt = status === "published" ? new Date().toISOString() : null;
+
+  const { error } = await supabase.from("articles").insert({
+    author_id: authorId,
+    category_id: input.categoryId,
+    content: input.content,
+    published_at: publishedAt,
+    slug: createSlug(input.title),
+    status,
+    summary: input.summary,
+    title: input.title,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateAdminArticle(
+  id: string,
+  input: {
+    categoryId: string;
+    content: string;
+    status: string;
+    summary: string;
+    title: string;
+  },
+) {
+  const supabase = createSupabaseAdminClient();
+  const status = input.status || "draft";
+  const publishedAt = status === "published" ? new Date().toISOString() : null;
+
+  const { error } = await supabase
+    .from("articles")
+    .update({
+      category_id: input.categoryId,
+      content: input.content,
+      published_at: publishedAt,
+      slug: createSlug(input.title),
+      status,
+      summary: input.summary,
+      title: input.title,
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function deleteAdminArticle(id: string) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("articles").delete().eq("id", id);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function getAdminFoodItems() {

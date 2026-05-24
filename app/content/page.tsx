@@ -1,8 +1,16 @@
 import { AdminPage } from "@/components/admin/admin-page";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { getAdminArticles } from "@/lib/admin-repository";
+import {
+  getAdminArticles,
+  getContentCategories,
+} from "@/lib/admin-repository";
 import { articles } from "@/lib/dashboard-data";
 import { hasSupabaseAdminEnv } from "@/lib/env";
+import {
+  createArticleAction,
+  deleteArticleAction,
+  updateArticleAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -18,13 +26,55 @@ async function getArticles() {
   }
 }
 
-export default async function ContentPage() {
+async function getCategories() {
+  if (!hasSupabaseAdminEnv()) {
+    return [
+      { id: "makan-santai", name: "Makan santai", slug: "makan-santai" },
+      { id: "olahraga-pemula", name: "Olahraga pemula", slug: "olahraga-pemula" },
+      { id: "kurangi-gula", name: "Kurangi gula", slug: "kurangi-gula" },
+    ];
+  }
+
+  try {
+    return await getContentCategories();
+  } catch {
+    return [];
+  }
+}
+
+type ArticleItem = Awaited<ReturnType<typeof getArticles>>[number];
+type EditableArticle = ArticleItem & {
+  categoryId: string;
+  content: string;
+  id: string;
+  statusValue: string;
+  summary: string;
+};
+
+function isEditableArticle(article: ArticleItem | undefined): article is EditableArticle {
+  return Boolean(article && "id" in article);
+}
+
+interface ContentPageProps {
+  searchParams?: Promise<{
+    edit?: string;
+  }>;
+}
+
+export default async function ContentPage({ searchParams }: ContentPageProps) {
+  const params = await searchParams;
   const articleItems = await getArticles();
+  const categories = await getCategories();
+  const candidateArticle = params?.edit
+    ? articleItems.find((article) => "id" in article && article.id === params.edit)
+    : undefined;
+  const editedArticle = isEditableArticle(candidateArticle) ? candidateArticle : undefined;
+  const isEditing = Boolean(editedArticle);
 
   return (
     <AdminPage
       active="Content"
-      action={<button className="primary-button">+ Artikel Baru</button>}
+      action={<a className="primary-button" href="/content">+ Artikel Baru</a>}
       description="Kelola artikel tips yang tampil di aplikasi mobile."
       title="Content Management"
     >
@@ -54,12 +104,13 @@ export default async function ContentPage() {
                   <th>Status</th>
                   <th>Author</th>
                   <th>Update</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {articleItems.length === 0 ? (
                   <tr>
-                    <td className="muted" colSpan={5}>
+                    <td className="muted" colSpan={6}>
                       Belum ada artikel.
                     </td>
                   </tr>
@@ -73,6 +124,23 @@ export default async function ContentPage() {
                       </td>
                       <td className="muted">{article.author}</td>
                       <td className="muted">{article.updated}</td>
+                      <td>
+                        {"id" in article ? (
+                          <div className="row-actions">
+                            <a className="text-action" href={`/content?edit=${article.id}`}>
+                              Edit
+                            </a>
+                            <form action={deleteArticleAction}>
+                              <input name="id" type="hidden" value={article.id} />
+                              <button className="danger-action" type="submit">
+                                Hapus
+                              </button>
+                            </form>
+                          </div>
+                        ) : (
+                          <span className="muted">-</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -84,29 +152,75 @@ export default async function ContentPage() {
         <aside className="panel form-panel">
           <div className="panel-head">
             <div>
-              <h2>Editor Cepat</h2>
-              <p>Draft awal untuk artikel baru.</p>
+              <h2>{isEditing ? "Edit Artikel" : "Editor Cepat"}</h2>
+              <p>{isEditing ? "Update konten yang sudah tersimpan." : "Draft awal untuk artikel baru."}</p>
             </div>
           </div>
-          <div className="form-grid">
+          <form action={isEditing ? updateArticleAction : createArticleAction} className="form-grid">
+            {editedArticle && <input name="id" type="hidden" value={editedArticle.id} />}
             <label>
               Judul
-              <input placeholder="Contoh: Cara tetap makan nasi saat diet" />
+              <input
+                defaultValue={editedArticle?.title ?? ""}
+                name="title"
+                placeholder="Contoh: Cara tetap makan nasi saat diet"
+                required
+              />
             </label>
             <label>
               Kategori
-              <select defaultValue="makan-santai">
-                <option value="makan-santai">Makan santai</option>
-                <option value="olahraga-pemula">Olahraga pemula</option>
-                <option value="kurangi-gula">Kurangi gula</option>
+              <select
+                defaultValue={editedArticle?.categoryId ?? categories[0]?.id ?? ""}
+                name="categoryId"
+                required
+              >
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Status
+              <select defaultValue={editedArticle?.statusValue ?? "draft"} name="status">
+                <option value="draft">Draft</option>
+                <option value="review">Review</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
               </select>
             </label>
             <label>
               Ringkasan
-              <textarea placeholder="Tulis ringkasan pendek..." rows={5} />
+              <textarea
+                defaultValue={editedArticle?.summary ?? ""}
+                name="summary"
+                placeholder="Tulis ringkasan pendek..."
+                required
+                rows={4}
+              />
             </label>
-            <button className="primary-button">Simpan Draft</button>
-          </div>
+            <label>
+              Konten
+              <textarea
+                defaultValue={editedArticle?.content ?? ""}
+                name="content"
+                placeholder="Tulis isi artikel..."
+                required
+                rows={8}
+              />
+            </label>
+            <div className="form-actions">
+              <button className="primary-button" type="submit">
+                {isEditing ? "Update Artikel" : "Simpan Artikel"}
+              </button>
+              {isEditing && (
+                <a className="secondary-button" href="/content">
+                  Batal
+                </a>
+              )}
+            </div>
+          </form>
         </aside>
       </section>
     </AdminPage>

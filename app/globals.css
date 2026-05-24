@@ -42,7 +42,9 @@ a {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -213,6 +215,13 @@ input {
   box-shadow: 0 12px 22px rgba(27, 174, 140, 0.18);
   font-size: 13px;
   font-weight: 800;
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.text-action:hover,
+.danger-action:hover {
+  opacity: 0.86;
 }
 
 .secondary-button {
@@ -438,6 +447,44 @@ input {
 
 .form-grid textarea {
   resize: vertical;
+}
+
+.form-actions,
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.form-actions .secondary-button {
+  min-width: 92px;
+}
+
+.row-actions {
+  flex-wrap: nowrap;
+}
+
+.row-actions form {
+  margin: 0;
+}
+
+.text-action,
+.danger-action {
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.text-action {
+  color: var(--deep-teal);
+}
+
+.danger-action {
+  padding: 0;
+  color: var(--danger-text);
 }
 
 .form-grid input:focus,
