@@ -1,4 +1,5 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
+import { requireAdminApi } from "@/lib/api/admin-auth";
 import { getAdminOverview } from "@/lib/admin-repository";
 import { hasSupabaseAdminEnv, hasSupabasePublicEnv } from "@/lib/env";
 import { feedback, stats, topFoods } from "@/lib/dashboard-data";
@@ -6,6 +7,12 @@ import { feedback, stats, topFoods } from "@/lib/dashboard-data";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const auth = await requireAdminApi("Overview");
+
+  if (auth.error) {
+    return auth.error;
+  }
+
   const supabase = {
     adminConfigured: hasSupabaseAdminEnv(),
     publicConfigured: hasSupabasePublicEnv(),
