@@ -75,7 +75,7 @@ export default async function AdminOverviewPage() {
   return (
     <AdminPage
       active="Overview"
-      action={<button className="primary-button">+ Buat Konten</button>}
+      action={<a className="primary-button" href="/content">+ Buat Konten</a>}
       description="Ringkasan performa aplikasi Fitaru hari ini."
       title="Overview Dashboard"
     >
@@ -93,7 +93,7 @@ export default async function AdminOverviewPage() {
                   <h2>User Growth</h2>
                   <p>Pertumbuhan user 7 hari terakhir.</p>
                 </div>
-                <a href="#">Export</a>
+                <a href="/users">Lihat user</a>
               </div>
               <UserGrowthChart />
             </article>
@@ -104,7 +104,7 @@ export default async function AdminOverviewPage() {
                   <h2>Content Management</h2>
                   <p>Artikel tips dan edukasi yang tampil di aplikasi.</p>
                 </div>
-                <a href="#">Lihat semua</a>
+                <a href="/content">Lihat semua</a>
               </div>
 
               <div className="segments">
@@ -175,6 +175,7 @@ export default async function AdminOverviewPage() {
                   <h2>Top Foods</h2>
                   <p>Makanan paling sering dicatat minggu ini.</p>
                 </div>
+                <a href="/food-database">Kelola</a>
               </div>
               <div className="list">
                 {overview.topFoods.length === 0 ? (
@@ -204,6 +205,7 @@ export default async function AdminOverviewPage() {
                   <h2>Activity Logs</h2>
                   <p>Pencatatan olahraga 7 hari terakhir.</p>
                 </div>
+                <a href="/exercise-database">Kelola</a>
               </div>
               <ActivityBars />
             </article>
@@ -214,7 +216,7 @@ export default async function AdminOverviewPage() {
                   <h2>Recent Feedback</h2>
                   <p>Masukan terbaru dari user.</p>
                 </div>
-                <a href="#">Kelola</a>
+                <a href="/feedback">Kelola</a>
               </div>
               <div className="list">
                 {overview.feedback.length === 0 ? (
