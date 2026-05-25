@@ -7,6 +7,7 @@ import {
   deleteAdminArticle,
   updateAdminArticle,
 } from "@/lib/admin-repository";
+import { requireAdmin } from "@/lib/auth/session";
 
 function readArticleForm(formData: FormData) {
   const categoryId = String(formData.get("categoryId") ?? "").trim();
@@ -29,6 +30,7 @@ function readArticleForm(formData: FormData) {
 }
 
 export async function createArticleAction(formData: FormData) {
+  await requireAdmin("Content");
   await createAdminArticle(readArticleForm(formData));
   revalidatePath("/");
   revalidatePath("/content");
@@ -36,6 +38,7 @@ export async function createArticleAction(formData: FormData) {
 }
 
 export async function updateArticleAction(formData: FormData) {
+  await requireAdmin("Content");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
@@ -49,6 +52,7 @@ export async function updateArticleAction(formData: FormData) {
 }
 
 export async function deleteArticleAction(formData: FormData) {
+  await requireAdmin("Content");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {

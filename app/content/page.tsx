@@ -1,4 +1,5 @@
 import { AdminPage } from "@/components/admin/admin-page";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
   getAdminArticles,
@@ -169,26 +170,28 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
             </label>
             <label>
               Kategori
-              <select
+              <CustomSelect
                 defaultValue={editedArticle?.categoryId ?? categories[0]?.id ?? ""}
                 name="categoryId"
+                options={categories.map((category) => ({
+                  label: category.name,
+                  value: category.id,
+                }))}
                 required
-              >
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
             <label>
               Status
-              <select defaultValue={editedArticle?.statusValue ?? "draft"} name="status">
-                <option value="draft">Draft</option>
-                <option value="review">Review</option>
-                <option value="published">Published</option>
-                <option value="archived">Archived</option>
-              </select>
+              <CustomSelect
+                defaultValue={editedArticle?.statusValue ?? "draft"}
+                name="status"
+                options={[
+                  { label: "Draft", value: "draft" },
+                  { label: "Review", value: "review" },
+                  { label: "Published", value: "published" },
+                  { label: "Archived", value: "archived" },
+                ]}
+              />
             </label>
             <label>
               Ringkasan
