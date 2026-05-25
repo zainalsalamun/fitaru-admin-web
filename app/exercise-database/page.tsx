@@ -1,4 +1,5 @@
 import { AdminPage } from "@/components/admin/admin-page";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getAdminExerciseItems } from "@/lib/admin-repository";
 import { exerciseItems } from "@/lib/cms-data";
@@ -150,34 +151,45 @@ export default async function ExerciseDatabasePage({ searchParams }: ExerciseDat
             </label>
             <label>
               Kategori
-              <select defaultValue={editedItem?.categoryValue ?? "walking"} name="category" required>
-                <option value="walking">Walking</option>
-                <option value="running">Running</option>
-                <option value="home_workout">Home workout</option>
-                <option value="cycling">Cycling</option>
-                <option value="yoga">Yoga</option>
-                <option value="gym">Gym</option>
-                <option value="other">Lainnya</option>
-              </select>
+              <CustomSelect
+                defaultValue={editedItem?.categoryValue ?? "walking"}
+                name="category"
+                options={[
+                  { label: "Walking", value: "walking" },
+                  { label: "Running", value: "running" },
+                  { label: "Home workout", value: "home_workout" },
+                  { label: "Cycling", value: "cycling" },
+                  { label: "Yoga", value: "yoga" },
+                  { label: "Gym", value: "gym" },
+                  { label: "Lainnya", value: "other" },
+                ]}
+                required
+              />
             </label>
             <label>
               Intensitas Default
-              <select
+              <CustomSelect
                 defaultValue={editedItem?.intensityValue ?? "medium"}
                 name="defaultIntensity"
+                options={[
+                  { label: "Ringan", value: "light" },
+                  { label: "Sedang", value: "medium" },
+                  { label: "Berat", value: "heavy" },
+                ]}
                 required
-              >
-                <option value="light">Ringan</option>
-                <option value="medium">Sedang</option>
-                <option value="heavy">Berat</option>
-              </select>
+              />
             </label>
             <label>
               Status
-              <select defaultValue={editedItem?.statusValue ?? "active"} name="status" required>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+              <CustomSelect
+                defaultValue={editedItem?.statusValue ?? "active"}
+                name="status"
+                options={[
+                  { label: "Active", value: "active" },
+                  { label: "Inactive", value: "inactive" },
+                ]}
+                required
+              />
             </label>
             <div className="form-row">
               <label>

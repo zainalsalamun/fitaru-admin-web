@@ -7,6 +7,7 @@ import {
   deleteAdminExerciseItem,
   updateAdminExerciseItem,
 } from "@/lib/admin-repository";
+import { requireAdmin } from "@/lib/auth/session";
 
 function readNumber(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -57,6 +58,7 @@ function readExerciseForm(formData: FormData) {
 }
 
 export async function createExerciseItemAction(formData: FormData) {
+  await requireAdmin("Exercise Database");
   await createAdminExerciseItem(readExerciseForm(formData));
   revalidatePath("/");
   revalidatePath("/exercise-database");
@@ -64,6 +66,7 @@ export async function createExerciseItemAction(formData: FormData) {
 }
 
 export async function updateExerciseItemAction(formData: FormData) {
+  await requireAdmin("Exercise Database");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
@@ -77,6 +80,7 @@ export async function updateExerciseItemAction(formData: FormData) {
 }
 
 export async function deleteExerciseItemAction(formData: FormData) {
+  await requireAdmin("Exercise Database");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
