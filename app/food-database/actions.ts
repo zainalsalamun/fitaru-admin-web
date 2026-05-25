@@ -7,6 +7,7 @@ import {
   deleteAdminFoodItem,
   updateAdminFoodItem,
 } from "@/lib/admin-repository";
+import { requireAdmin } from "@/lib/auth/session";
 
 function readNumber(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -49,6 +50,7 @@ function readFoodForm(formData: FormData) {
 }
 
 export async function createFoodItemAction(formData: FormData) {
+  await requireAdmin("Food Database");
   await createAdminFoodItem(readFoodForm(formData));
   revalidatePath("/");
   revalidatePath("/food-database");
@@ -56,6 +58,7 @@ export async function createFoodItemAction(formData: FormData) {
 }
 
 export async function updateFoodItemAction(formData: FormData) {
+  await requireAdmin("Food Database");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
@@ -69,6 +72,7 @@ export async function updateFoodItemAction(formData: FormData) {
 }
 
 export async function deleteFoodItemAction(formData: FormData) {
+  await requireAdmin("Food Database");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {

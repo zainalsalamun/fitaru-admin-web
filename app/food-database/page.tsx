@@ -1,4 +1,5 @@
 import { AdminPage } from "@/components/admin/admin-page";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getAdminFoodItems } from "@/lib/admin-repository";
 import { foodItems } from "@/lib/cms-data";
@@ -147,29 +148,44 @@ export default async function FoodDatabasePage({ searchParams }: FoodDatabasePag
             </label>
             <label>
               Kategori
-              <select defaultValue={editedItem?.categoryValue ?? "homemade"} name="category" required>
-                <option value="homemade">Makanan rumahan</option>
-                <option value="outside_food">Makanan luar</option>
-                <option value="drink">Minuman</option>
-                <option value="fruit">Buah</option>
-                <option value="snack">Snack</option>
-                <option value="other">Lainnya</option>
-              </select>
+              <CustomSelect
+                defaultValue={editedItem?.categoryValue ?? "homemade"}
+                name="category"
+                options={[
+                  { label: "Makanan rumahan", value: "homemade" },
+                  { label: "Makanan luar", value: "outside_food" },
+                  { label: "Minuman", value: "drink" },
+                  { label: "Buah", value: "fruit" },
+                  { label: "Snack", value: "snack" },
+                  { label: "Lainnya", value: "other" },
+                ]}
+                required
+              />
             </label>
             <label>
               Porsi Default
-              <select defaultValue={editedItem?.portionValue ?? "medium"} name="defaultPortion" required>
-                <option value="small">Kecil</option>
-                <option value="medium">Sedang</option>
-                <option value="large">Besar</option>
-              </select>
+              <CustomSelect
+                defaultValue={editedItem?.portionValue ?? "medium"}
+                name="defaultPortion"
+                options={[
+                  { label: "Kecil", value: "small" },
+                  { label: "Sedang", value: "medium" },
+                  { label: "Besar", value: "large" },
+                ]}
+                required
+              />
             </label>
             <label>
               Status
-              <select defaultValue={editedItem?.statusValue ?? "active"} name="status" required>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+              <CustomSelect
+                defaultValue={editedItem?.statusValue ?? "active"}
+                name="status"
+                options={[
+                  { label: "Active", value: "active" },
+                  { label: "Inactive", value: "inactive" },
+                ]}
+                required
+              />
             </label>
             <label>
               Kalori per porsi
