@@ -1,4 +1,5 @@
 import { AdminPage } from "@/components/admin/admin-page";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getAdminFeedback } from "@/lib/admin-repository";
 import { feedback } from "@/lib/dashboard-data";
@@ -105,12 +106,17 @@ export default async function FeedbackPage({ searchParams }: FeedbackPageProps) 
             {editedItem && <input name="id" type="hidden" value={editedItem.id} />}
             <label>
               Status
-              <select defaultValue={editedItem?.statusValue ?? "reviewed"} disabled={!editedItem} name="status">
-                <option value="open">Open</option>
-                <option value="reviewed">Reviewed</option>
-                <option value="resolved">Resolved</option>
-                <option value="archived">Archived</option>
-              </select>
+              <CustomSelect
+                defaultValue={editedItem?.statusValue ?? "reviewed"}
+                disabled={!editedItem}
+                name="status"
+                options={[
+                  { label: "Open", value: "open" },
+                  { label: "Reviewed", value: "reviewed" },
+                  { label: "Resolved", value: "resolved" },
+                  { label: "Archived", value: "archived" },
+                ]}
+              />
             </label>
             <label>
               Catatan

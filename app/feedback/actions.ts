@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { updateAdminFeedback } from "@/lib/admin-repository";
+import { requireAdmin } from "@/lib/auth/session";
 
 function readFeedbackForm(formData: FormData) {
   const adminNote = String(formData.get("adminNote") ?? "").trim();
@@ -19,6 +20,7 @@ function readFeedbackForm(formData: FormData) {
 }
 
 export async function updateFeedbackAction(formData: FormData) {
+  await requireAdmin("Feedback");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
