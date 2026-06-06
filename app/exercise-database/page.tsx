@@ -103,7 +103,7 @@ export default async function ExerciseDatabasePage({ searchParams }: ExerciseDat
                         <StatusBadge>{exercise.status}</StatusBadge>
                       </td>
                       <td>
-                        {"id" in exercise ? (
+                        {isEditableExerciseItem(exercise) ? (
                           <div className="row-actions">
                             <a className="text-action" href={`/exercise-database?edit=${exercise.id}`}>
                               Edit

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   createAdminExerciseItem,
+  createAuditLog,
   deleteAdminExerciseItem,
   updateAdminExerciseItem,
 } from "@/lib/admin-repository";
@@ -58,29 +59,44 @@ function readExerciseForm(formData: FormData) {
 }
 
 export async function createExerciseItemAction(formData: FormData) {
-  await requireAdmin("Exercise Database");
-  await createAdminExerciseItem(readExerciseForm(formData));
+  const admin = await requireAdmin("Exercise Database");
+  const input = readExerciseForm(formData);
+  await createAdminExerciseItem(input);
+  await createAuditLog({
+    action: "create",
+    adminUserId: admin.id,
+    metadata: { category: input.category, name: input.name, status: input.status },
+    resourceType: "exercise_item",
+  });
   revalidatePath("/");
   revalidatePath("/exercise-database");
   redirect("/exercise-database");
 }
 
 export async function updateExerciseItemAction(formData: FormData) {
-  await requireAdmin("Exercise Database");
+  const admin = await requireAdmin("Exercise Database");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
     throw new Error("Exercise item id is required.");
   }
 
-  await updateAdminExerciseItem(id, readExerciseForm(formData));
+  const input = readExerciseForm(formData);
+  await updateAdminExerciseItem(id, input);
+  await createAuditLog({
+    action: "update",
+    adminUserId: admin.id,
+    metadata: { category: input.category, name: input.name, status: input.status },
+    resourceId: id,
+    resourceType: "exercise_item",
+  });
   revalidatePath("/");
   revalidatePath("/exercise-database");
   redirect("/exercise-database");
 }
 
 export async function deleteExerciseItemAction(formData: FormData) {
-  await requireAdmin("Exercise Database");
+  const admin = await requireAdmin("Exercise Database");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
@@ -88,6 +104,12 @@ export async function deleteExerciseItemAction(formData: FormData) {
   }
 
   await deleteAdminExerciseItem(id);
+  await createAuditLog({
+    action: "delete",
+    adminUserId: admin.id,
+    resourceId: id,
+    resourceType: "exercise_item",
+  });
   revalidatePath("/");
   revalidatePath("/exercise-database");
   redirect("/exercise-database");
