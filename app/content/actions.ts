@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   createAdminArticle,
+  createAuditLog,
   deleteAdminArticle,
   updateAdminArticle,
 } from "@/lib/admin-repository";
@@ -30,29 +31,44 @@ function readArticleForm(formData: FormData) {
 }
 
 export async function createArticleAction(formData: FormData) {
-  await requireAdmin("Content");
-  await createAdminArticle(readArticleForm(formData));
+  const admin = await requireAdmin("Content");
+  const input = readArticleForm(formData);
+  await createAdminArticle(input);
+  await createAuditLog({
+    action: input.status === "published" ? "publish" : "create",
+    adminUserId: admin.id,
+    metadata: { status: input.status, title: input.title },
+    resourceType: "article",
+  });
   revalidatePath("/");
   revalidatePath("/content");
   redirect("/content");
 }
 
 export async function updateArticleAction(formData: FormData) {
-  await requireAdmin("Content");
+  const admin = await requireAdmin("Content");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
     throw new Error("Article id is required.");
   }
 
-  await updateAdminArticle(id, readArticleForm(formData));
+  const input = readArticleForm(formData);
+  await updateAdminArticle(id, input);
+  await createAuditLog({
+    action: input.status === "published" ? "publish" : "update",
+    adminUserId: admin.id,
+    metadata: { status: input.status, title: input.title },
+    resourceId: id,
+    resourceType: "article",
+  });
   revalidatePath("/");
   revalidatePath("/content");
   redirect("/content");
 }
 
 export async function deleteArticleAction(formData: FormData) {
-  await requireAdmin("Content");
+  const admin = await requireAdmin("Content");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
@@ -60,6 +76,12 @@ export async function deleteArticleAction(formData: FormData) {
   }
 
   await deleteAdminArticle(id);
+  await createAuditLog({
+    action: "delete",
+    adminUserId: admin.id,
+    resourceId: id,
+    resourceType: "article",
+  });
   revalidatePath("/");
   revalidatePath("/content");
   redirect("/content");

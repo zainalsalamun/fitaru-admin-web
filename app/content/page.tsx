@@ -126,7 +126,7 @@ export default async function ContentPage({ searchParams }: ContentPageProps) {
                       <td className="muted">{article.author}</td>
                       <td className="muted">{article.updated}</td>
                       <td>
-                        {"id" in article ? (
+                        {isEditableArticle(article) ? (
                           <div className="row-actions">
                             <a className="text-action" href={`/content?edit=${article.id}`}>
                               Edit
