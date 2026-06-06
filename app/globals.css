@@ -821,10 +821,25 @@ textarea {
   font-weight: 800;
 }
 
+.form-success {
+  margin: 0;
+  padding: 11px 13px;
+  border-radius: 14px;
+  color: var(--deep-teal);
+  background: var(--mint);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+}
+
+.settings-alert {
+  margin: 0 18px 16px;
 }
 
 .setting-card {
@@ -863,6 +878,54 @@ textarea {
   background: var(--mint);
   font-size: 12px;
   font-weight: 800;
+}
+
+.form-section {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.form-section legend {
+  padding: 0 6px;
+  color: var(--deep-teal);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--off-white);
+}
+
+.toggle-field span,
+.toggle-field small {
+  display: block;
+}
+
+.toggle-field small {
+  margin-top: 4px;
+  color: var(--slate);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.toggle-field input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--teal);
+  flex: 0 0 auto;
 }
 
 .segments {
@@ -1042,6 +1105,10 @@ td {
   height: auto;
 }
 
+.login-panel img[height] {
+  height: auto;
+}
+
 .login-panel h1 {
   margin: 0;
   font-size: 28px;
@@ -1058,6 +1125,17 @@ td {
 
 .login-form {
   padding: 0;
+}
+
+.auth-link {
+  color: var(--deep-teal);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.auth-link-right {
+  justify-self: end;
+  margin-top: -4px;
 }
 
 @media (max-width: 1100px) {
