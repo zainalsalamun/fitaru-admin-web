@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   createAdminFoodItem,
+  createAuditLog,
   deleteAdminFoodItem,
   updateAdminFoodItem,
 } from "@/lib/admin-repository";
@@ -50,29 +51,44 @@ function readFoodForm(formData: FormData) {
 }
 
 export async function createFoodItemAction(formData: FormData) {
-  await requireAdmin("Food Database");
-  await createAdminFoodItem(readFoodForm(formData));
+  const admin = await requireAdmin("Food Database");
+  const input = readFoodForm(formData);
+  await createAdminFoodItem(input);
+  await createAuditLog({
+    action: "create",
+    adminUserId: admin.id,
+    metadata: { category: input.category, name: input.name, status: input.status },
+    resourceType: "food_item",
+  });
   revalidatePath("/");
   revalidatePath("/food-database");
   redirect("/food-database");
 }
 
 export async function updateFoodItemAction(formData: FormData) {
-  await requireAdmin("Food Database");
+  const admin = await requireAdmin("Food Database");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
     throw new Error("Food item id is required.");
   }
 
-  await updateAdminFoodItem(id, readFoodForm(formData));
+  const input = readFoodForm(formData);
+  await updateAdminFoodItem(id, input);
+  await createAuditLog({
+    action: "update",
+    adminUserId: admin.id,
+    metadata: { category: input.category, name: input.name, status: input.status },
+    resourceId: id,
+    resourceType: "food_item",
+  });
   revalidatePath("/");
   revalidatePath("/food-database");
   redirect("/food-database");
 }
 
 export async function deleteFoodItemAction(formData: FormData) {
-  await requireAdmin("Food Database");
+  const admin = await requireAdmin("Food Database");
   const id = String(formData.get("id") ?? "").trim();
 
   if (!id) {
@@ -80,6 +96,12 @@ export async function deleteFoodItemAction(formData: FormData) {
   }
 
   await deleteAdminFoodItem(id);
+  await createAuditLog({
+    action: "delete",
+    adminUserId: admin.id,
+    resourceId: id,
+    resourceType: "food_item",
+  });
   revalidatePath("/");
   revalidatePath("/food-database");
   redirect("/food-database");
