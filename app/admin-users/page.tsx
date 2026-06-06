@@ -2,6 +2,7 @@ import { AdminPage } from "@/components/admin/admin-page";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getAdminAccounts } from "@/lib/admin-repository";
+import { requireSuperAdmin } from "@/lib/auth/session";
 import { hasSupabaseAdminEnv } from "@/lib/env";
 import {
   createAdminAccountAction,
@@ -46,6 +47,8 @@ interface AdminUsersPageProps {
 }
 
 export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
+  await requireSuperAdmin();
+
   const params = await searchParams;
   const accounts = await getAccounts();
   const editedAccount = params?.edit
@@ -136,7 +139,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             <div className="setting-card compact">
               <div>
                 <strong>Role Access</strong>
-                <p>Super Admin: semua akses. Content Admin: konten dan database. Support Admin: user dan feedback.</p>
+                <p>Super Admin: semua akses. Admin: operasional CMS tanpa kelola admin lain.</p>
               </div>
             </div>
           </div>
@@ -168,12 +171,11 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             <label>
               Role
               <CustomSelect
-                defaultValue={editedAccount?.roleValue ?? "support_admin"}
+                defaultValue={editedAccount?.roleValue ?? "admin"}
                 name="role"
                 options={[
                   { label: "Super Admin", value: "super_admin" },
-                  { label: "Content Admin", value: "content_admin" },
-                  { label: "Support Admin", value: "support_admin" },
+                  { label: "Admin", value: "admin" },
                 ]}
                 required
               />
