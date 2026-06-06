@@ -79,7 +79,7 @@ export default async function FeedbackPage({ searchParams }: FeedbackPageProps) 
                   <p>{item.message}</p>
                   <div className="feedback-footer">
                     <span>{item.user}</span>
-                    {"id" in item && (
+                    {isEditableFeedbackItem(item) && (
                       <a className="text-action" href={`/feedback?edit=${item.id}`}>
                         Kelola
                       </a>
