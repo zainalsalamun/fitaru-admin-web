@@ -103,7 +103,7 @@ export default async function FoodDatabasePage({ searchParams }: FoodDatabasePag
                         <StatusBadge>{food.status}</StatusBadge>
                       </td>
                       <td>
-                        {"id" in food ? (
+                        {isEditableFoodItem(food) ? (
                           <div className="row-actions">
                             <a className="text-action" href={`/food-database?edit=${food.id}`}>
                               Edit
