@@ -1,4 +1,7 @@
+import { AdminAccountMenu } from "@/components/admin/admin-account-menu";
 import { Sidebar } from "@/components/admin/sidebar";
+import { logoutAction } from "@/app/logout/actions";
+import { requireAdmin } from "@/lib/auth/session";
 
 interface AdminPageProps {
   active: string;
@@ -8,16 +11,18 @@ interface AdminPageProps {
   title: string;
 }
 
-export function AdminPage({
+export async function AdminPage({
   active,
   action,
   children,
   description,
   title,
 }: AdminPageProps) {
+  const admin = await requireAdmin(active);
+
   return (
     <main className="admin-shell">
-      <Sidebar active={active} />
+      <Sidebar active={active} role={admin.role} />
 
       <section className="main-panel">
         <header className="topbar">
@@ -31,7 +36,12 @@ export function AdminPage({
               <input placeholder="Cari data..." />
             </label>
             {action}
-            <div className="avatar">AD</div>
+            <AdminAccountMenu
+              email={admin.email}
+              logoutAction={logoutAction}
+              name={admin.name}
+              role={admin.role}
+            />
           </div>
         </header>
 
